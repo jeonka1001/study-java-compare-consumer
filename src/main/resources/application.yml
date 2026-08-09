@@ -1,0 +1,45 @@
+spring:
+  application:
+    name: shadowdiff-compare-server
+
+  # Java 21 Virtual Threads. 신규 API 1:N 호출 시 블로킹 I/O 비용을 낮춘다.
+  threads:
+    virtual:
+      enabled: true
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: shadowdiff-compare-server
+      auto-offset-reset: latest
+      # 검증은 부가 경로이므로 과거 메시지를 소급 처리하지 않는다.
+      max-poll-records: 100
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+shadowdiff:
+  topic: shadowdiff.request
+  redis:
+    key-prefix: "shadowdiff:response:"
+    retry-delay: 200ms
+    max-retry: 2
+  new-api:
+    base-url: ${NEW_API_BASE_URL:http://localhost:8081}
+    timeout: 3s
+    max-concurrency: 50
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+
+logging:
+  level:
+    shadowdiff: DEBUG
